@@ -1,0 +1,163 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   GENERAL
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; add my own path for additional elisp stuff
+(add-to-list 'load-path "~/bin/emacs")
+
+;; remove annoying toolbar
+(tool-bar-mode -1)
+
+;; disable startup message
+(setq inhibit-startup-message t)
+
+;; bottom of screen
+;; - column number
+;; - line number
+(column-number-mode 1)
+(line-number-mode 1)
+
+;; alias y to yes and n to no
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+;; highlight matches from searches
+(setq isearch-highlight t)
+(setq search-highlight t)
+
+;; enable visual feedback on selections
+(setq-default transient-mark-mode t)
+
+;; allowing syntax highlighting
+(global-font-lock-mode t)
+(setq font-lock-maximum-decoration t)
+
+;; see matching parentesis
+(require 'paren)
+(show-paren-mode 1)
+
+(defadvice show-paren-function
+  (after show-matching-paren-offscreen activate)
+  "If the matching paren is offscreen, show the matching line in the
+   echo area. Has no effect if the character before point is not of
+   the syntax class ')'."
+  (interactive)
+  (if (not (minibuffer-prompt))
+      (let ((matching-text nil))
+	;; Only call `blink-matching-open' if the character before point
+	;; is a close parentheses type character. Otherwise, there's not
+	;; really any point, and `blink-matching-open' would just echo
+	;; "Mismatched parentheses", which gets really annoying.
+	(if (char-equal (char-syntax (char-before (point))) ?\))
+	    (setq matching-text (blink-matching-open)))
+	(if (not (null matching-text))
+	    (message matching-text)))))
+
+;; make comments to be in italic font
+(make-face-italic 'font-lock-comment-face)
+
+;; set font (size 16)
+(require 'carbon-font)
+(add-to-list 'default-frame-alist
+   '(font . "-*-*-medium-r-normal--16-*-*-*-*-*-fontset-osaka"))
+
+;; number of columns per line
+(setq-default fill-column 72)
+
+;; no more M-q in text
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+
+;; my preferred color scheme
+(require 'color-theme)
+(color-theme-initialize)
+(color-theme-charcoal-black)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   LaTeX
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; to allow external apps to use emacs (Skim)
+(server-start)
+
+;; use Skim to visualize pdf's created through LaTeX
+(require 'tex-site)
+(add-hook 'TeX-mode-hook
+   (lambda ()
+      (add-to-list 'TeX-output-view-style
+         '("^pdf$" "."
+           "/Applications/Skim.app/Contents/SharedSupport/displayline %n %o %b")))
+)
+
+;; labels/references/citations in AUCTeX
+(setq reftex-plug-into-AUCTeX t)
+
+;; auto-raise Emacs on activation
+;; this will be used if double-click
+;; on Skim selection and it traces back
+;; to the LaTeX source
+(defun raise-emacs-on-aqua() 
+   (shell-command "osascript -e 'tell application \"Emacs\" to activate' "))
+
+;; Show TeX line in Skim
+(add-hook 'server-switch-hook 'raise-emacs-on-aqua)
+
+;; Use PDF mode by default
+(setq-default TeX-PDF-mode t)
+
+;; Make emacs aware of multi-file projects
+(setq-default TeX-master nil)
+
+;; TeX master
+(setq-default TeX-master nil)
+
+;; no more M-q in TeX
+(add-hook 'tex-mode-hook 'turn-on-auto-fill)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   R / ESS
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; use ssh to allow remote sessions
+(require 'ssh)
+
+;; use ESS
+(load "ess-site")
+
+;; no more M-q in ESS
+(add-hook 'ess-mode-hook 'turn-on-auto-fill)
+
+;; add extensions of Sweave docs
+;; to the list of auto-mode for
+;; syntax highlighting
+(add-to-list 'auto-mode-alist '("\\.Rnw\\'" . Rnw-mode))
+(add-to-list 'auto-mode-alist '("\\.Snw\\'" . Snw-mode))
+
+;; outline mode for R files
+;;   - use BSD indentation style
+;;   - tab length 8
+(add-hook 'ess-mode-hook
+	  '(lambda ()
+	     (ess-set-style 'C++)
+	     (setq ess-indent-level 4)
+;;	     (setq tab-width 4)
+;;	     (setq indent-tabs-mode f)
+	     ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   ORG-Mode
+;;;;;;;;;;;;;;;;;;;;;;;;;
+(add-to-list 'load-path "~/bin/emacs/org/lisp")
+(add-to-list 'load-path "~/bin/emacs/org/contrib/lisp")
+
+(require 'org-install)
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(setq org-log-done t)
+
+;; org-R
+;; (require 'org-R)
+
+;; Matlab mode
+;;(autoload 'matlab-mode "~/bin/emacs/matlab.el" "Enter Matlab mode." t)
+;;(setq auto-mode-alist (cons '("\\.m\\'" . matlab-mode) auto-mode-alist))
+;;(autoload 'matlab-shell "~/bin/emacs/matlab.el" "Interactive Matlab mode." t) 

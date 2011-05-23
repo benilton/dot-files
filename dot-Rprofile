@@ -1,0 +1,33 @@
+options(pkgType="source", show.signif.stars=FALSE)
+if(TRUE && interactive()){
+    tryCatch({
+        source("http://bioconductor.org/biocLite.R")
+    }, error=function(e) invisible(NULL),
+             warning=function(w) message("Not connected to the net"))
+}
+reload_pkg <- function(p, ...){
+    detach(paste("package", p, sep=":"),
+           unload=TRUE, character.only=TRUE)
+    library(p, character.only=TRUE, ...)
+}
+
+update <- function()
+    update.packages(ask=FALSE, repos=biocinstallRepos())
+
+## Tells R to look in the appropriate subdirectory for my local
+## packages, which may be more current than Kasper's system installs
+## Note that
+##    - install.packages() installs to the first element of .libPaths()
+##    by default
+##    - R CMD INSTALL also installs to the first element of .libPaths()
+##    for an R session run in the current environment
+
+rv <- paste(R.Version()[['major']],
+            strsplit(R.Version()[['minor']], "\\.")[[1]][1],
+            sep=".")
+switch(paste("R", rv, sep="."),
+       R.2.12=.libPaths("~/Rlibs/2.12"),
+       R.2.13=.libPaths("~/Rlibs/2.13"),
+       R.2.14=.libPaths("~/Rlibs/2.14"),
+       R.2.8=.libPaths("~/Rlibs/2.8")
+       )
